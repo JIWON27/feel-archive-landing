@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feel-Archive | 공간 기반 감정 아카이빙</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+    <style>
+        :root {
+            /* Brand Colors */
+            --primary: #D19D5E;
+            --primary-dark: #b88748;
+            --text-main: #191F28;
+            --text-sub: #6B7280;
+            --bg-base: #FFFFFF;
+            --bg-sub: #F9FAFB;
+            
+            /* Map Colors */
+            --map-bg: #F4F7F8;
+            --map-road: #FFFFFF;
+            --map-water: #AADAFF;
+            --map-park: #C8E6C9;
+
+            /* Tag Colors */
+            --tag-joy-bg: #FFF8E1; --tag-joy-text: #B45309;
+            --tag-calm-bg: #E3FDF3; --tag-calm-text: #047857;
+            --tag-sad-bg: #F0F9FF; --tag-sad-text: #0369A1;
+
+            --header-h: 70px;
+            --container: 1140px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { color: var(--text-main); line-height: 1.6; word-break: keep-all; overflow-x: hidden; }
+
+        /* 스크롤 진행도 바 */
+        .scroll-progress {
+            position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: var(--primary);
+            z-index: 9999; transition: width 0.1s;
+        }
+
+        /* Header */
+        header {
+            position: fixed; top: 0; width: 100%; height: var(--header-h);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px);
+            z-index: 1000; display: flex; justify-content: center; border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: box-shadow 0.3s;
+        }
+        header.scrolled { box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+
+        .nav-container { width: 100%; max-width: var(--container); padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 800; font-size: 1.3rem; text-decoration: none; color: #333; }
+        .logo span { color: var(--primary); }
+        .nav-links { display: flex; gap: 32px; }
+        .nav-links a { text-decoration: none; color: #4E5968; font-weight: 600; font-size: 0.95rem; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--primary); }
+        .btn-start { background: #333; color: white; padding: 8px 18px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 700; transition: background 0.2s; cursor: pointer; border: none; }
+        .btn-start:hover { background: var(--primary); }
+
+        /* HERO SECTION (CSS Vector Map) */
+        .hero-map-ui {
+            position: relative; width: 100%; height: 100vh; min-height: 700px;
+            background-color: var(--map-bg); overflow: hidden; display: flex; align-items: center; justify-content: center;
+            padding-top: var(--header-h);
+        }
+
+        .vector-map-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.8; }
+        .map-grid {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.8) 2px, transparent 2px), linear-gradient(90deg, rgba(255,255,255,0.8) 2px, transparent 2px);
+            background-size: 100px 100px; opacity: 0.5;
+        }
+
+        .ui-layer { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+        
+        .map-search-bar {
+            position: absolute; top: 120px; left: 5%; width: 320px; background: white;
+            padding: 12px 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex; align-items: center; gap: 10px; pointer-events: auto; border: 1px solid #eee;
+        }
+        
+        .map-controls {
+            position: absolute; top: 120px; right: 5%; display: flex; flex-direction: column; gap: 8px; pointer-events: auto;
+        }
+        .control-btn { width: 40px; height: 40px; background: white; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #555; border: 1px solid #eee; }
+
+        .hero-content {
+            position: relative; z-index: 20; text-align: center; background: rgba(255,255,255,0.85);
+            padding: 40px 50px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid white;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); max-width: 700px; margin-top: -40px;
+        }
+        .hero h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 20px; line-height: 1.25; letter-spacing: -1px; }
+        .hero h1 .highlight { color: var(--primary); }
+        .hero p { font-size: 1.15rem; color: #555; margin-bottom: 30px; }
+
+        /* Markers & Cards */
+        .marker {
+            position: absolute; background: white; padding: 8px 14px; border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px;
+            font-weight: 700; font-size: 0.9rem; color: #333; pointer-events: auto; cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.05); animation: float 4s ease-in-out infinite;
+        }
+        .marker.active { background: #191F28; color: white; z-index: 30; }
+        .marker.joy { border-left: 3px solid #F59E0B; }
+        .marker.calm { border-left: 3px solid #10B981; }
+        .marker.scraped { border: 2px solid var(--primary); background: #FFF8E1; color: var(--primary-dark); }
+        
+        .record-card {
+            position: absolute; bottom: 80px; left: 5%; width: 320px; background: white; padding: 24px;
+            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); pointer-events: auto;
+            border-left: 4px solid var(--primary); animation: float-card 5s ease-in-out infinite alternate;
+        }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes float-card { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+
+        .river-path { fill: none; stroke: var(--map-water); stroke-width: 50px; stroke-linecap: round; }
+        .road-main { fill: none; stroke: white; stroke-width: 12px; }
+        .park-area { fill: var(--map-park); opacity: 0.6; }
+
+        /* --- FEATURES COMMON --- */
+        .section { padding: 120px 0; background: white; }
+        .section.bg-gray { background: var(--bg-sub); }
+        .container { max-width: var(--container); margin: 0 auto; padding: 0 24px; }
+
+        .section-header { text-align: center; max-width: 700px; margin: 0 auto 80px; }
+        .section-tag { display: inline-block; color: var(--primary); font-weight: 700; font-size: 0.9rem; margin-bottom: 16px; text-transform: uppercase; padding: 6px 16px; background: rgba(209, 157, 94, 0.1); border-radius: 20px; }
+        .section-header h2 { font-size: 2.4rem; font-weight: 800; margin-bottom: 20px; }
+        .section-header p { font-size: 1.15rem; color: var(--text-sub); }
+
+        .feature-split { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; margin-bottom: 120px; }
+        .feature-split:last-child { margin-bottom: 0; }
+        .feature-split.reverse .feature-text { order: 2; }
+        .feature-split.reverse .feature-visual { order: 1; }
+
+        .feature-tag { color: var(--primary); font-weight: 700; font-size: 0.95rem; margin-bottom: 16px; display: block; text-transform: uppercase; }
+        .feature-text h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 24px; line-height: 1.3; }
+        .feature-text p { font-size: 1.1rem; color: var(--text-sub); line-height: 1.7; margin-bottom: 32px; }
+        
+        .check-list { list-style: none; }
+        .check-list li { margin-bottom: 12px; display: flex; align-items: center; gap: 10px; font-weight: 500; color: #4B5563; }
+        .check-list li::before { content: '✓'; color: var(--primary); font-weight: 800; }
+
+        .feature-visual {
+            background: #F3F4F6; border-radius: 24px; height: 480px; border: 1px solid #E5E7EB;
+            display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+
+        /* --- COMMUNITY PREVIEW (NEW) --- */
+        .community-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px;
+        }
+        .feed-card {
+            background: white; border-radius: 16px; overflow: hidden; border: 1px solid #eee;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s;
+        }
+        .feed-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        .feed-header {
+            padding: 16px; border-bottom: 1px solid #f5f5f5; display: flex; align-items: center; justify-content: space-between;
+        }
+        .feed-user { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; color: #333; }
+        .user-avatar { 
+            width: 32px; height: 32px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+        }
+        .feed-date { font-size: 0.8rem; color: #999; }
+        .feed-body { padding: 20px 16px; }
+        .feed-tag { 
+            display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; margin-bottom: 12px;
+        }
+        .tag-calm { background: var(--tag-calm-bg); color: var(--tag-calm-text); }
+        .tag-sad { background: var(--tag-sad-bg); color: var(--tag-sad-text); }
+        .tag-joy { background: var(--tag-joy-bg); color: var(--tag-joy-text); }
+        
+        .feed-text { font-size: 0.95rem; color: #444; line-height: 1.6; margin-bottom: 12px; }
+        .feed-loc { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: #888; }
+        
+        .feed-more-container { text-align: center; margin-top: 20px; position: relative; }
+        .feed-more-btn {
+            background: white; border: 1px solid #ddd; padding: 12px 32px; border-radius: 30px;
+            font-size: 0.95rem; font-weight: 600; color: #555; cursor: pointer; transition: all 0.2s;
+        }
+        .feed-more-btn:hover { background: #f9f9f9; color: var(--primary); border-color: var(--primary); }
+
+        /* Report & Capsule Visuals */
+        .capsule-ui {
+            position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #f5f0e6 0%, #fff 100%);
+        }
+        .mail-card {
+            background: white; width: 320px; padding: 32px 28px; border-radius: 16px; 
+            box-shadow: 0 15px 35px rgba(139, 90, 43, 0.1); border: 1px solid rgba(209, 157, 94, 0.2);
+            text-align: center; position: relative;
+        }
+        .mail-icon-lock {
+            font-size: 3rem; margin-bottom: 16px; display: inline-block;
+            background: #FFF8E1; width: 80px; height: 80px; line-height: 80px; border-radius: 50%; color: #D19D5E;
+        }
+        .mail-title { font-weight: 700; font-size: 1.1rem; color: #333; margin-bottom: 8px; }
+        .mail-desc { font-size: 0.9rem; color: #666; margin-bottom: 24px; }
+        .mail-date { 
+            background: #F9FAFB; padding: 10px; border-radius: 8px; font-size: 0.85rem; color: #555; font-weight: 600;
+            border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;
+        }
+        .unlock-badge { background: #D19D5E; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; }
+
+        .toast-noti {
+            position: absolute; top: 40px; right: 40px; background: white; padding: 12px 16px;
+            border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px;
+            animation: float 3s ease-in-out infinite;
+        }
+        .noti-icon { width: 8px; height: 8px; background: #EF4444; border-radius: 50%; }
+
+        .report-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; padding: 24px; height: 100%;
+        }
+        .report-card {
+            background: white; border-radius: 16px; padding: 24px;
+            border: 1px solid #e8e4dc; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .report-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .report-header h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+
+        .bar-chart-area { display: flex; align-items: flex-end; gap: 10px; height: 140px; width: 100%; }
+        .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+        .bar-val { width: 100%; border-radius: 4px 4px 0 0; opacity: 0.8; }
+        .bar-txt { font-size: 0.7rem; color: #888; font-weight: 600; }
+
+        /* FAQ */
+        .faq-section { background: white; padding: 100px 0; }
+        .faq-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); 
+            gap: 20px; max-width: 900px; margin: 60px auto 0;
+        }
+        .faq-item {
+            background: white; border: 2px solid #E5E7EB; 
+            border-radius: 12px; overflow: hidden;
+            transition: all 0.3s;
+        }
+        .faq-item:hover { border-color: var(--primary); }
+        .faq-question {
+            padding: 24px 28px; font-weight: 700; font-size: 1.05rem;
+            cursor: pointer; display: flex; justify-content: space-between;
+            align-items: center; color: var(--text-main);
+            transition: all 0.2s;
+        }
+        .faq-question:hover { color: var(--primary); }
+        .faq-icon {
+            font-size: 1.5rem; color: var(--primary); transition: transform 0.3s;
+            font-weight: 400;
+        }
+        .faq-item.active .faq-icon { transform: rotate(45deg); }
+        .faq-answer {
+            padding: 0 28px 24px; font-size: 0.95rem; 
+            color: var(--text-sub); line-height: 1.7;
+            display: none;
+        }
+        .faq-item.active .faq-answer { display: block; }
+
+        /* Trust & CTA */
+        .trust-section { padding: 80px 0; background: #fff; border-top: 1px solid #eee; text-align: center; }
+        .cta-section { background: #191F28; color: white; padding: 120px 0; text-align: center; }
+        .btn-large {
+            display: inline-block; background: var(--primary); color: white; padding: 18px 48px; border-radius: 12px;
+            font-size: 1.2rem; font-weight: 700; text-decoration: none; margin-top: 40px; transition: all 0.2s;
+            cursor: pointer; border: none;
+        }
+        .btn-large:hover { background: var(--primary-dark); transform: scale(1.02); }
+
+        /* Footer */
+        footer { background: #191F28; color: rgba(255,255,255,0.7); padding: 60px 0 30px; text-align: center; }
+        .footer-links { display: flex; gap: 32px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+        .footer-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; }
+        .footer-copy { font-size: 0.85rem; opacity: 0.5; margin-top: 32px; }
+
+        @media (max-width: 1024px) {
+            .hero h1 { font-size: 2.2rem; }
+            .feature-split, .feature-split.reverse { grid-template-columns: 1fr; }
+            .report-grid { grid-template-columns: 1fr; }
+            .community-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto 40px; }
+            .faq-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <header id="header">
+        <div class="nav-container">
+            <a href="#" class="logo">Feel<span>-Archive</span></a>
+            <nav class="nav-links">
+                <a href="#map">기능소개</a>
+                <a href="#community">아카이브</a>
+                <a href="#faq">Q&A</a>
+            </nav>
+            <button class="btn-start" onclick="handleAuth()">시작하기</button>
+        </div>
+    </header>
+
+    <section class="hero-map-ui">
+        <div class="vector-map-bg">
+            <div class="map-grid"></div>
+            <svg width="100%" height="100%" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+                <path class="park-area" d="M1200,600 Q1400,500 1600,700 T1800,800 L1800,1080 L1200,1080 Z" />
+                <path class="park-area" d="M100,100 Q300,50 400,300 T200,500 L0,500 L0,100 Z" />
+                <path class="river-path" d="M-50,800 C400,750 600,900 1000,850 S1600,600 2000,650" />
+                <path class="road-main" d="M0,300 L1920,300" />
+                <path class="road-main" d="M0,500 L1920,500" />
+                <path class="road-main" d="M500,0 L500,1080" />
+                <path class="road-main" d="M1300,0 L1300,1080" />
+                <path class="road-main" d="M0,0 L800,1080" />
+            </svg>
+        </div>
+
+        <div class="ui-layer">
+            <div class="map-search-bar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D19D5E" stroke-width="3" style="margin-right:8px"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span style="color:#888; font-size:0.9rem">내 주변 '우울 해소' 경험 검색...</span>
+            </div>
+            <div class="map-controls">
+                <div class="control-btn" title="내 위치">📍</div>
+                <div class="control-btn" title="필터">⚡</div>
+            </div>
+
+            <div class="marker active" style="top: 45%; left: 52%;">
+                <span style="font-size:1.2rem">🌿</span> 김민수 (나)
+            </div>
+            <div class="marker scraped" style="top: 30%; left: 28%; animation-delay:1s;">
+                <span style="font-size:1.2rem">📌</span> 스크랩
+            </div>
+            <div class="marker calm" style="top: 20%; right: 15%; animation-delay:1.5s;">
+                <span style="font-size:1.2rem">☕</span> 카페
+            </div>
+
+            <div class="record-card">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                    <div style="width:36px; height:36px; background: linear-gradient(135deg, #B4E4FF, #95BDFF); border-radius:50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">🐱</div>
+                    <div>
+                        <div style="font-weight:700; font-size:0.95rem;">김민수</div>
+                        <div style="font-size:0.8rem; color:#888;">망원동 · 2시간 전</div>
+                    </div>
+                </div>
+                <div style="font-size:0.95rem; color:#444;">"물결 멍 때리기가 생각보다 효과가 좋네요. 복잡한 생각이 정리됩니다."</div>
+            </div>
+        </div>
+
+        <div class="hero-content">
+          <h1 class="hero-title">
+              당신의 감정이 머물렀던 순간은,<br>
+              늘 <span class="highlight">어떤 장소</span>에 남아 있습니다.
+          </h1>
+          
+          <p class="hero-desc">
+              행복했던 순간도, 위로가 필요했던 날도.<br>
+              당신의 <b>감정에 대한 기억</b>을 기록하고, 타인의 <b>장소</b>를 발견하세요.
+          </p>
+          <div class="hero-actions">
+              <button class="btn-start" onclick="handleAuth()">무료로 시작하기</button>
+              <a href="#community" class="btn-secondary">다른 사람들의 기록 보기 ↓</a>
+          </div>
+        </div>
+    </section>
+
+    <section class="section" id="map">
+        <div class="container">
+            <div class="feature-split">
+                <div class="feature-text">
+                    <span class="feature-tag">지도 & 탐색 (Explore)</span>
+                    <h2>내 감정에 딱 맞는 장소,<br>지도로 확인하세요</h2>
+                    <p>
+                        "지금 내 위치 근처에, 우울할 때 가기 좋은 곳이 있을까?"<br>
+                        감정별 필터링과 인기순 정렬을 통해 나에게 필요한 경험을 찾아보세요.
+                    </p>
+                    <ul class="check-list">
+                        <li><strong>내 기록 & 스크랩 보기:</strong> 내가 쓴 글과 저장한 글만 지도에 띄워보세요.</li>
+                        <li><strong>감정 필터링:</strong> '기쁨', '우울', '평온' 등 원하는 감정 상태만 조회.</li>
+                        <li><strong>위치 기반 추천:</strong> 내 주변의 공개 아카이브를 인기순/최신순으로 확인.</li>
+                    </ul>
+                </div>
+                <div class="feature-visual" style="background:#F9FAFB;">
+                    <div style="background:white; padding:24px; width:300px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+                        <div style="display:flex; gap:8px; margin-bottom:16px;">
+                            <span style="background:#191F28; color:white; padding:6px 12px; border-radius:20px; font-size:0.8rem;">🔥 인기순</span>
+                            <span style="border:1px solid #ddd; padding:6px 12px; border-radius:20px; font-size:0.8rem;">📍 내 주변</span>
+                        </div>
+                        <div style="height:1px; background:#eee; margin-bottom:16px;"></div>
+                        <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px;">
+                            <div style="width:24px; height:24px; background: linear-gradient(135deg, #FFD1DC, #FF69B4); border-radius:50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">🌸</div>
+                            <div style="height:10px; width:60%; background:#f0f0f0; border-radius:4px;"></div>
+                        </div>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <div style="width:24px; height:24px; background: linear-gradient(135deg, #A8E6CF, #56AB91); border-radius:50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">🌿</div>
+                            <div style="height:10px; width:80%; background:#f0f0f0; border-radius:4px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section bg-gray" id="timecapsule">
+        <div class="container">
+            <div class="feature-split reverse">
+                <div class="feature-text">
+                    <span class="feature-tag">타임캡슐 (Time Capsule)</span>
+                    <h2>감정이 해소된 순간,<br>나에게 편지를 보내세요</h2>
+                    <p>
+                        감정은 흘러갑니다. 격한 감정 상태에서 쓴 글을 바로 공개하지 않고, 
+                        <strong>1주일 혹은 1년 뒤</strong> 감정이 해소되었을 때 다시 열어보세요.
+                    </p>
+                    <ul class="check-list">
+                        <li><strong>공개 시점 설정:</strong> 글 작성 시 1주/1달/1년 뒤 공개 예약.</li>
+                        <li><strong>과거의 나에게:</strong> 그때의 힘듦과 지금의 나를 비교해보는 회고의 시간.</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-visual" style="background:#fff;">
+                    <div class="capsule-ui">
+                        <div class="toast-noti">
+                            <div class="noti-icon"></div>
+                            <div style="font-size:0.85rem;"><strong>1년 전의 나</strong>로부터 편지가 도착했습니다.</div>
+                        </div>
+                        <div class="mail-card">
+                            <span class="mail-icon-lock">🔒</span>
+                            <div class="mail-title">1년 전의 편지</div>
+                            <div class="mail-desc">이 편지는 2027년 1월 15일에 열립니다.<br>그때의 나는 어떤 기분일까요?</div>
+                            <div class="mail-date">
+                                <span>D-365</span>
+                                <span class="unlock-badge">잠김</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="report">
+        <div class="container">
+            <div class="feature-split">
+                <div class="feature-text">
+                    <span class="feature-tag">리포트 (Analysis)</span>
+                    <h2>데이터로 마주하는<br>나의 감정 패턴</h2>
+                    <p>
+                        월간 감정 리포트로 내가 언제 행복하고, 언제 우울한지 객관적으로 확인하세요.
+                        막연한 느낌이 아닌 <strong>데이터</strong>로 나를 이해할 수 있습니다.
+                    </p>
+                    <ul class="check-list">
+                        <li><strong>월간 감정 그래프:</strong> 긍정/부정 감정의 흐름 시각화.</li>
+                        <li><strong>장소 통계:</strong> 내가 자주 느끼는 감정과 연결된 장소 분석.</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-visual" style="background:#fff; border:none; box-shadow:none;">
+                    <div class="report-grid">
+                        <div class="report-card">
+                            <div class="report-header">
+                                <span style="font-size:1.2rem">📈</span>
+                                <h4>월간 감정 흐름</h4>
+                            </div>
+                            <svg viewBox="0 0 300 150" style="width:100%; height:100%; margin-top:10px;">
+                                <polyline points="0,100 50,80 100,120 150,60 200,90 250,40 300,50" fill="none" stroke="#D19D5E" stroke-width="3" />
+                                <circle cx="150" cy="60" r="4" fill="#D19D5E" />
+                                <text x="150" y="45" font-size="10" text-anchor="middle" fill="#666">최고조</text>
+                            </svg>
+                        </div>
+
+                        <div class="report-card">
+                            <div class="report-header">
+                                <span style="font-size:1.2rem">📊</span>
+                                <h4>감정 분포</h4>
+                            </div>
+                            <div class="bar-chart-area">
+                                <div class="bar-col"><div class="bar-val" style="height:40%; background:#FFC43D"></div><span class="bar-txt">기쁨</span></div>
+                                <div class="bar-col"><div class="bar-val" style="height:80%; background:#5EB17F"></div><span class="bar-txt">평온</span></div>
+                                <div class="bar-col"><div class="bar-val" style="height:30%; background:#6B9BD1"></div><span class="bar-txt">우울</span></div>
+                                <div class="bar-col"><div class="bar-val" style="height:50%; background:#A084C4"></div><span class="bar-txt">불안</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section bg-gray" id="community">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">실시간 아카이브</span>
+                <h2>지금, 이 순간의 기록들</h2>
+                <p>다른 사람들은 어떤 장소에서 어떤 감정을 느끼고 있을까요?<br>공개된 아카이브를 통해 새로운 장소를 발견하세요.</p>
+            </div>
+
+            <div class="community-grid">
+                <div class="feed-card">
+                    <div class="feed-header">
+                        <div class="feed-user">
+                            <div class="user-avatar" style="background: linear-gradient(135deg, #A8E6CF, #56AB91);">🌳</div>
+                            <span>익명 사용자</span>
+                        </div>
+                        <span class="feed-date">10분 전</span>
+                    </div>
+                    <div class="feed-body">
+                        <span class="feed-tag tag-calm">🌿 평온</span>
+                        <p class="feed-text">복잡한 머릿속을 비우려 서울숲을 걸었습니다. 나무 사이로 들어오는 햇살이 큰 위로가 되었어요.</p>
+                        <div class="feed-loc">📍 서울숲 가족마당</div>
+                    </div>
+                </div>
+
+                <div class="feed-card">
+                    <div class="feed-header">
+                        <div class="feed-user">
+                            <div class="user-avatar" style="background: linear-gradient(135deg, #B4B4DC, #8484C6);">📚</div>
+                            <span>박지민</span>
+                        </div>
+                        <span class="feed-date">30분 전</span>
+                    </div>
+                    <div class="feed-body">
+                        <span class="feed-tag tag-sad">💧 우울</span>
+                        <p class="feed-text">힘든 날, 동네 서점에서 우연히 만난 책 한 권이 큰 위로가 되었습니다. 조용해서 좋았어요.</p>
+                        <div class="feed-loc">📍 연남동 독립서점</div>
+                    </div>
+                </div>
+
+                <div class="feed-card">
+                    <div class="feed-header">
+                        <div class="feed-user">
+                            <div class="user-avatar" style="background: linear-gradient(135deg, #FFE5B4, #FFB347);">☀️</div>
+                            <span>김하늘</span>
+                        </div>
+                        <span class="feed-date">1시간 전</span>
+                    </div>
+                    <div class="feed-body">
+                        <span class="feed-tag tag-joy">😊 기쁨</span>
+                        <p class="feed-text">오랜만에 친구들과 한강 피크닉! 날씨도 좋고 맛있는 것도 먹고 완벽한 하루였어요.</p>
+                        <div class="feed-loc">📍 여의도 한강공원</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feed-more-container">
+                <button class="feed-more-btn" onclick="handleAuth()">더 많은 아카이브 보기 ↓</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="trust-section" style="background:white;">
+        <div class="container" style="text-align:center;">
+             <div style="display:inline-flex; align-items:center; gap:10px; background:white; padding:12px 30px; border-radius:50px; box-shadow:0 4px 20px rgba(0,0,0,0.05); border:1px solid #eee;">
+                <span style="font-size:1.2rem;">✅</span>
+                <span style="font-weight:700; color:#333; font-size:1rem;">개인 경험 공유 및 아카이빙 플랫폼</span>
+             </div>
+        </div>
+    </section>
+
+    <section class="faq-section" id="faq">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">자주 묻는 질문</span>
+                <h2>궁금한 점이 있으신가요?</h2>
+                <p>Feel-Archive 이용에 대해 궁금한 점을 확인하세요.</p>
+            </div>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>무료로 사용할 수 있나요?</span>
+                        <div class="faq-icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        네, Feel-Archive의 핵심 기능인 지도 기록, 타임캡슐, 월간 리포트는 모두 무료로 제공됩니다. 부담 없이 시작해보세요.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>내 기록은 안전한가요?</span>
+                        <div class="faq-icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        물론입니다. 기본적으로 모든 기록은 '비공개' 상태이며, 사용자님이 원하실 때만 공개로 전환할 수 있습니다.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>타임캡슐은 수정 가능한가요?</span>
+                        <div class="faq-icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        타임캡슐로 봉인된 기록은 등록 후 30분 이내에만 수정이 가능합니다. 이후에는 설정한 날짜까지 수정하거나 열어볼 수 없습니다. 온전히 미래의 나에게 맡겨주세요.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>모바일 앱도 있나요?</span>
+                        <div class="faq-icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        현재는 웹 버전으로 제공되며, 모바일 브라우저에서도 완벽하게 호환됩니다. 전용 앱은 추후 출시 예정입니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="container">
+            <h2 style="font-size:2.5rem; font-weight:800; margin-bottom:20px;">기록은 남기고,<br>변화는 돌아보게 합니다</h2>
+            <p style="opacity:0.8; font-size:1.1rem; margin-bottom:40px;">지금 Feel-Archive에서 당신만의 감정 지도를 만들어보세요.</p>
+            <button class="btn-large" onclick="handleAuth()">무료로 시작하기</button>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#">서비스 소개</a>
+                <a href="#">이용약관</a>
+                <a href="#">개인정보처리방침</a>
+                <a href="#">문의하기</a>
+            </div>
+            <div class="footer-copy">© 2026 Feel-Archive. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script>
+        // 스크롤 진행도
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('scrollProgress').style.width = scrolled + '%';
+        });
+
+        // 헤더 스크롤 효과
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) { header.classList.add('scrolled'); } 
+            else { header.classList.remove('scrolled'); }
+        });
+
+        // FAQ 토글
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.closest('.faq-item');
+                const isActive = item.classList.contains('active');
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+                if (!isActive) { item.classList.add('active'); }
+            });
+        });
+
+        // 스크롤 이동
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        // 로그인/회원가입 유도
+        function handleAuth() {
+            alert("더 많은 기능을 이용하시려면 회원가입이 필요합니다.\n(데모 버전입니다)");
+        }
+    </script>
+</body>
+</html>
