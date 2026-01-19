@@ -1,0 +1,843 @@
+{
+  "project": "feel-archive",
+  "version": "1.0",
+  "lastUpdated": "2026-01-19",
+  "tasks": [
+    {
+      "id": 1,
+      "category": "setup",
+      "description": "Spring Boot 프로젝트 초기화 (Java 17, Gradle)",
+      "steps": [
+        "Spring Initializr로 프로젝트 생성 (Web, JPA, Security, Validation)",
+        "build.gradle에 MySQL, QueryDSL, JWT 의존성 추가",
+        "application.yml 로컬 개발 환경 설정",
+        "./gradlew bootRun 성공 확인"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 2,
+      "category": "setup",
+      "description": "MySQL Spatial 확장 설정",
+      "steps": [
+        "Docker Compose로 MySQL 8 컨테이너 구성",
+        "Spatial 함수 활성화 확인 (ST_Distance_Sphere 테스트)",
+        "POINT 컬럼 테스트 테이블 생성",
+        "Spatial Index 생성 및 쿼리 테스트"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 3,
+      "category": "setup",
+      "description": "JPA + QueryDSL 설정",
+      "steps": [
+        "build.gradle에 QueryDSL 플러그인 설정",
+        "QClass 생성 확인 (compileQuerydsl)",
+        "JPAQueryFactory Bean 등록",
+        "샘플 쿼리 컴파일 확인"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 4,
+      "category": "setup",
+      "description": "DDD 패키지 구조 설정 (5 Bounded Contexts)",
+      "steps": [
+        "domain/member 패키지 생성 (entity, repository, service, controller)",
+        "domain/archive 패키지 생성",
+        "domain/timecapsule 패키지 생성",
+        "domain/report 패키지 생성",
+        "domain/notification 패키지 생성",
+        "global/config, global/exception, global/common 패키지 생성"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 5,
+      "category": "setup",
+      "description": "Next.js 14 프로젝트 초기화",
+      "steps": [
+        "create-next-app으로 프로젝트 생성 (App Router, TypeScript)",
+        "Tailwind CSS 설정",
+        "React Query 설치 및 Provider 설정",
+        "npm run dev 성공 확인"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 6,
+      "category": "setup",
+      "description": "Kakao Maps SDK 설정",
+      "steps": [
+        "Kakao Developers에서 JavaScript 키 발급",
+        "Next.js에 Script 컴포넌트로 SDK 로드",
+        "테스트 페이지에서 지도 렌더링 확인",
+        "마커 표시 테스트"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": ["Kakao Developers 계정 및 앱 등록 필요"]
+    },
+    {
+      "id": 7,
+      "category": "setup",
+      "description": "Docker Compose 로컬 개발 환경 구성",
+      "steps": [
+        "docker-compose.yml 작성 (MySQL 8, Redis)",
+        "환경변수 파일 (.env) 설정",
+        "docker-compose up 성공 확인",
+        "MySQL 접속 테스트 (mysql -h localhost -u root)"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 8,
+      "category": "feature",
+      "description": "Member 엔티티 및 Repository 구현",
+      "steps": [
+        "Member 엔티티 정의 (id, email, password, nickname, profileImageUrl, createdAt, updatedAt)",
+        "MemberRepository 인터페이스 생성 (JpaRepository 상속)",
+        "findByEmail 메서드 추가",
+        "existsByEmail 메서드 추가",
+        "JPA 테스트로 저장/조회 확인"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 9,
+      "category": "feature",
+      "description": "비밀번호 암호화 (BCrypt) 구현",
+      "steps": [
+        "BCryptPasswordEncoder Bean 등록",
+        "PasswordEncoder 주입 및 encode 메서드 사용",
+        "회원가입 시 암호화된 비밀번호 저장 확인",
+        "로그인 시 matches 메서드로 검증"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 10,
+      "category": "feature",
+      "description": "JWT 인증 필터 구현",
+      "steps": [
+        "jjwt 라이브러리 의존성 추가",
+        "JwtTokenProvider 클래스 생성 (토큰 생성/검증)",
+        "JwtAuthenticationFilter 구현 (OncePerRequestFilter)",
+        "SecurityConfig에 필터 등록",
+        "Authorization 헤더에서 토큰 추출 및 검증 테스트"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 11,
+      "category": "feature",
+      "description": "회원가입 API 구현 (POST /api/auth/signup)",
+      "steps": [
+        "SignupRequest DTO 정의 (email, password, nickname)",
+        "AuthService.signup 메서드 구현",
+        "이메일 중복 검사 로직 추가",
+        "AuthController에 엔드포인트 추가",
+        "201 Created 응답 확인"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 12,
+      "category": "feature",
+      "description": "로그인 API 구현 (POST /api/auth/login)",
+      "steps": [
+        "LoginRequest DTO 정의 (email, password)",
+        "LoginResponse DTO 정의 (accessToken)",
+        "AuthService.login 메서드 구현 (비밀번호 검증, 토큰 발급)",
+        "AuthController에 엔드포인트 추가",
+        "JWT 토큰 반환 확인"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 13,
+      "category": "feature",
+      "description": "내 정보 API 구현 (GET/PATCH /api/members/me)",
+      "steps": [
+        "MemberResponse DTO 정의",
+        "MemberUpdateRequest DTO 정의 (nickname, profileImageUrl)",
+        "MemberService 구현 (getMyInfo, updateMyInfo)",
+        "MemberController에 엔드포인트 추가",
+        "@AuthenticationPrincipal로 현재 사용자 주입"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 14,
+      "category": "feature",
+      "description": "프론트엔드 로그인 페이지 구현",
+      "steps": [
+        "app/(auth)/login/page.tsx 생성",
+        "로그인 폼 컴포넌트 구현 (이메일, 비밀번호)",
+        "폼 유효성 검사 (react-hook-form 또는 기본)",
+        "API 호출 및 토큰 저장 (localStorage 또는 cookie)",
+        "로그인 성공 시 홈으로 리다이렉트"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 15,
+      "category": "feature",
+      "description": "프론트엔드 회원가입 페이지 구현",
+      "steps": [
+        "app/(auth)/signup/page.tsx 생성",
+        "회원가입 폼 컴포넌트 구현 (이메일, 비밀번호, 닉네임)",
+        "폼 유효성 검사",
+        "API 호출 및 성공 시 로그인 페이지로 이동"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 16,
+      "category": "feature",
+      "description": "프론트엔드 인증 상태 관리 구현",
+      "steps": [
+        "AuthContext 또는 Zustand store 생성",
+        "토큰 저장/조회/삭제 유틸 함수",
+        "새로고침 시 인증 상태 복원",
+        "axios interceptor로 Authorization 헤더 자동 추가"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 17,
+      "category": "feature",
+      "description": "프론트엔드 Protected Route 구현",
+      "steps": [
+        "ProtectedRoute 컴포넌트 생성",
+        "인증되지 않은 사용자 로그인 페이지로 리다이렉트",
+        "인증이 필요한 페이지에 적용",
+        "로딩 상태 처리"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 18,
+      "category": "feature",
+      "description": "Archive 엔티티 구현 (POINT 컬럼 포함)",
+      "steps": [
+        "Archive 엔티티 정의 (id, memberId, content, latitude, longitude, point, locationName, isPublic, likeCount, createdAt, updatedAt, deletedAt)",
+        "point 필드에 @Column(columnDefinition = \"POINT SRID 4326\") 적용",
+        "LocationPrecision Enum 정의 (EXACT, AREA, CITY)",
+        "BaseEntity 상속으로 공통 필드 관리"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 19,
+      "category": "feature",
+      "description": "Spatial Index 생성",
+      "steps": [
+        "archive 테이블에 SPATIAL INDEX 생성 DDL 작성",
+        "Flyway 마이그레이션 스크립트 추가",
+        "인덱스 생성 확인 (SHOW INDEX FROM archive)",
+        "인덱스 사용 여부 확인 (EXPLAIN SELECT)"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 20,
+      "category": "feature",
+      "description": "ArchiveEmotion 엔티티 및 EmotionType Enum 구현",
+      "steps": [
+        "EmotionType Enum 정의 (HAPPY, SAD, ANXIOUS, ANGRY, CALM, EXCITED, LONELY, GRATEFUL, PEACEFUL, THRILLED, NOSTALGIC)",
+        "ArchiveEmotion 엔티티 정의 (id, archiveId, emotionType)",
+        "Archive와 ArchiveEmotion 간 OneToMany 관계 설정",
+        "Cascade 옵션 설정 (Archive 삭제 시 함께 삭제)"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 21,
+      "category": "feature",
+      "description": "Archive CRUD API 구현",
+      "steps": [
+        "ArchiveCreateRequest DTO 정의 (content, latitude, longitude, locationName, isPublic, emotionTypes)",
+        "ArchiveResponse DTO 정의",
+        "ArchiveService CRUD 메서드 구현",
+        "ArchiveController 엔드포인트 추가 (POST, GET, PATCH, DELETE)",
+        "Soft Delete 구현 (deletedAt 필드 사용)"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 22,
+      "category": "feature",
+      "description": "GIS 반경 검색 쿼리 구현 (findWithinRadius)",
+      "steps": [
+        "ArchiveRepositoryCustom 인터페이스 정의",
+        "ArchiveRepositoryImpl 구현 (QueryDSL 또는 Native Query)",
+        "ST_Distance_Sphere 함수로 반경 내 아카이브 조회",
+        "거리순 정렬 적용",
+        "단위 테스트 작성 (실제 좌표로 테스트)"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 23,
+      "category": "feature",
+      "description": "GIS 바운딩 박스 쿼리 구현 (findMarkersInBounds)",
+      "steps": [
+        "MBRContains 함수로 바운딩 박스 내 아카이브 조회",
+        "마커용 경량 DTO 반환 (id, latitude, longitude, emotionType)",
+        "ArchiveController에 /api/archives/map 엔드포인트 추가",
+        "쿼리 파라미터 (swLat, swLng, neLat, neLng) 처리"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 24,
+      "category": "feature",
+      "description": "Archive 필터/정렬 기능 구현",
+      "steps": [
+        "QueryDSL로 동적 쿼리 작성",
+        "감정별 필터 (emotionType IN (...)) 구현",
+        "시간순 정렬 (최신순/오래된순) 구현",
+        "거리순 정렬 (현재 위치 기준) 구현",
+        "인기순 정렬 (likeCount 기준) 구현"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 25,
+      "category": "feature",
+      "description": "프론트엔드 아카이브 작성 폼 구현",
+      "steps": [
+        "app/(main)/archive/new/page.tsx 생성",
+        "위치 선택 컴포넌트 (현재 위치 GPS / 지도에서 선택)",
+        "감정 태그 복수 선택 UI",
+        "텍스트 입력 (2000자 이상)",
+        "공개/비공개 토글",
+        "API 호출 및 저장"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 26,
+      "category": "feature",
+      "description": "프론트엔드 Kakao Maps 통합 구현",
+      "steps": [
+        "KakaoMap 공통 컴포넌트 생성",
+        "마커 렌더링 로직 구현",
+        "마커 클릭 시 InfoWindow 표시",
+        "지도 이동/줌 시 바운드 변경 감지",
+        "바운드 변경 시 API 호출 (debounce 적용)"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 27,
+      "category": "feature",
+      "description": "프론트엔드 지도 뷰 페이지 구현",
+      "steps": [
+        "app/(main)/explore/page.tsx 생성",
+        "전체 화면 Kakao Maps 렌더링",
+        "마커 로딩 및 표시",
+        "마커 클릭 시 미리보기 카드 표시",
+        "감정별 마커 색상 구분"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 28,
+      "category": "feature",
+      "description": "프론트엔드 피드 뷰 페이지 구현",
+      "steps": [
+        "피드 뷰 컴포넌트 구현",
+        "아카이브 카드 컴포넌트 생성",
+        "무한 스크롤 구현 (react-query useInfiniteQuery)",
+        "필터 UI (감정, 정렬 옵션)",
+        "지도 뷰 ↔ 피드 뷰 전환 버튼"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 29,
+      "category": "feature",
+      "description": "프론트엔드 아카이브 상세 페이지 구현",
+      "steps": [
+        "app/(main)/archive/[id]/page.tsx 생성",
+        "아카이브 상세 정보 표시 (내용, 위치, 감정, 작성일)",
+        "지도에 위치 마커 표시",
+        "수정/삭제 버튼 (본인 글만)",
+        "좋아요/스크랩 버튼"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 30,
+      "category": "feature",
+      "description": "Like 엔티티 및 토글 API 구현",
+      "steps": [
+        "Like 엔티티 정의 (id, memberId, archiveId, createdAt)",
+        "UNIQUE 제약조건 (memberId, archiveId)",
+        "LikeService.toggle 메서드 구현 (존재하면 삭제, 없으면 생성)",
+        "Archive.likeCount 동기화 로직",
+        "POST /api/archives/{id}/like 엔드포인트 추가"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 31,
+      "category": "feature",
+      "description": "Scrap 엔티티 및 토글 API 구현",
+      "steps": [
+        "Scrap 엔티티 정의 (id, memberId, archiveId, createdAt)",
+        "UNIQUE 제약조건 (memberId, archiveId)",
+        "ScrapService.toggle 메서드 구현",
+        "POST /api/archives/{id}/scrap 엔드포인트 추가",
+        "GET /api/members/me/scraps 엔드포인트 추가"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 32,
+      "category": "feature",
+      "description": "TimeCapsule 엔티티 구현",
+      "steps": [
+        "TimeCapsule 엔티티 정의 (id, memberId, content, latitude, longitude, locationName, imageUrl, scheduledAt, isOpened, isLocked, createdAt, updatedAt)",
+        "TimeCapsuleEmotion 엔티티 정의",
+        "canEdit() 비즈니스 메서드 구현 (30분 규칙)",
+        "canOpen() 비즈니스 메서드 구현"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 33,
+      "category": "feature",
+      "description": "TimeCapsule CRUD API 구현",
+      "steps": [
+        "TimeCapsuleCreateRequest DTO 정의",
+        "TimeCapsuleResponse DTO 정의",
+        "TimeCapsuleService CRUD 메서드 구현",
+        "TimeCapsuleController 엔드포인트 추가",
+        "수정 시 30분 경과 여부 검사"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 34,
+      "category": "feature",
+      "description": "TimeCapsule 30분 잠금 로직 구현",
+      "steps": [
+        "@Scheduled로 주기적 검사 (1분 간격)",
+        "createdAt + 30분 경과한 타임캡슐 조회",
+        "isLocked = true 업데이트",
+        "단위 테스트로 검증"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 35,
+      "category": "feature",
+      "description": "TimeCapsule 공개 이벤트 시스템 구현",
+      "steps": [
+        "TimeCapsuleOpenedEvent 도메인 이벤트 정의",
+        "ApplicationEventPublisher로 이벤트 발행",
+        "@EventListener로 이벤트 수신",
+        "@Async로 비동기 처리",
+        "이벤트 발행/수신 테스트"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 36,
+      "category": "feature",
+      "description": "Notification 엔티티 및 API 구현",
+      "steps": [
+        "Notification 엔티티 정의 (id, memberId, type, targetId, isRead, createdAt)",
+        "NotificationType Enum 정의 (TIME_CAPSULE_OPENED)",
+        "NotificationService.create 메서드 구현",
+        "GET /api/notifications 엔드포인트 추가",
+        "PATCH /api/notifications/{id}/read 엔드포인트 추가"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 37,
+      "category": "feature",
+      "description": "프론트엔드 좋아요/스크랩 버튼 구현",
+      "steps": [
+        "LikeButton 컴포넌트 생성",
+        "ScrapButton 컴포넌트 생성",
+        "낙관적 UI 업데이트 (클릭 즉시 반영)",
+        "API 실패 시 롤백",
+        "아카이브 카드/상세 페이지에 적용"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 38,
+      "category": "feature",
+      "description": "프론트엔드 내 스크랩 목록 페이지 구현",
+      "steps": [
+        "app/(main)/my/scraps/page.tsx 생성",
+        "스크랩한 아카이브 목록 표시",
+        "무한 스크롤 또는 페이지네이션",
+        "스크랩 해제 기능"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 39,
+      "category": "feature",
+      "description": "프론트엔드 타임캡슐 작성 폼 구현",
+      "steps": [
+        "app/(main)/timecapsule/new/page.tsx 생성",
+        "공개 예정 일시 선택 (DateTimePicker)",
+        "위치 선택 컴포넌트",
+        "감정 태그 선택",
+        "텍스트 입력",
+        "API 호출 및 저장"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 40,
+      "category": "feature",
+      "description": "프론트엔드 내 타임캡슐 목록 페이지 구현",
+      "steps": [
+        "app/(main)/my/timecapsules/page.tsx 생성",
+        "잠금/열림 상태에 따른 UI 구분",
+        "잠금 상태: 카운트다운 표시",
+        "열림 상태: 상세 보기 가능"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 41,
+      "category": "feature",
+      "description": "프론트엔드 타임캡슐 상세 페이지 구현",
+      "steps": [
+        "app/(main)/timecapsule/[id]/page.tsx 생성",
+        "잠금 상태: 블러 처리 또는 봉인 UI",
+        "열림 상태: 전체 내용 표시",
+        "수정 버튼 (30분 내 + 미잠금 상태만)"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 42,
+      "category": "feature",
+      "description": "프론트엔드 알림 표시 구현",
+      "steps": [
+        "헤더에 알림 아이콘 + 배지 추가",
+        "알림 드롭다운 또는 페이지 구현",
+        "읽지 않은 알림 개수 표시",
+        "알림 클릭 시 해당 타임캡슐로 이동"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 43,
+      "category": "feature",
+      "description": "월간 리포트 API 구현",
+      "steps": [
+        "MonthlyReportDto 정의",
+        "ReportService.getMonthlyReport 메서드 구현",
+        "월간 아카이브 수 집계",
+        "감정별 분포 집계 (GROUP BY emotionType)",
+        "GET /api/reports/monthly 엔드포인트 추가"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 44,
+      "category": "feature",
+      "description": "감정 분포 API 구현",
+      "steps": [
+        "EmotionDistributionDto 정의",
+        "ReportService.getEmotionDistribution 메서드 구현",
+        "전체 기간 또는 기간별 집계",
+        "GET /api/reports/emotions 엔드포인트 추가"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 45,
+      "category": "feature",
+      "description": "프론트엔드 리포트 페이지 구현",
+      "steps": [
+        "app/(main)/my/report/page.tsx 생성",
+        "월 선택 UI",
+        "감정 분포 바 차트 또는 파이 차트 (Chart.js 또는 Recharts)",
+        "일별 감정 흐름 라인 차트",
+        "기록 빈도 통계 표시"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 46,
+      "category": "feature",
+      "description": "전역 예외 처리 구현",
+      "steps": [
+        "@RestControllerAdvice GlobalExceptionHandler 생성",
+        "ErrorResponse DTO 정의 (code, message, timestamp)",
+        "BusinessException 커스텀 예외 클래스",
+        "MethodArgumentNotValidException 처리 (유효성 검사 실패)",
+        "일관된 에러 응답 형식 적용"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 47,
+      "category": "feature",
+      "description": "프론트엔드 로딩/에러/빈 상태 처리",
+      "steps": [
+        "Skeleton UI 컴포넌트 생성",
+        "ErrorBoundary 컴포넌트 생성",
+        "Toast 알림 시스템 구현",
+        "EmptyState 컴포넌트 생성",
+        "모든 페이지에 상태별 UI 적용"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 48,
+      "category": "feature",
+      "description": "프론트엔드 모바일 반응형 구현",
+      "steps": [
+        "Tailwind 반응형 클래스 적용",
+        "모바일 네비게이션 메뉴",
+        "터치 인터랙션 최적화",
+        "지도 뷰 모바일 UX 개선",
+        "모바일 기기에서 테스트"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 49,
+      "category": "setup",
+      "description": "GitHub Actions CI 파이프라인 구축",
+      "steps": [
+        ".github/workflows/backend.yml 생성",
+        "PR 생성 시 테스트 자동 실행",
+        "테스트 실패 시 PR 머지 차단",
+        ".github/workflows/frontend.yml 생성",
+        "프론트엔드 빌드 및 린트 검사"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 50,
+      "category": "setup",
+      "description": "AWS EC2 및 RDS 설정",
+      "steps": [
+        "EC2 인스턴스 생성 (t3.micro Free Tier)",
+        "RDS MySQL 인스턴스 생성 (db.t3.micro Free Tier)",
+        "보안 그룹 설정 (EC2 ↔ RDS 통신 허용)",
+        "EC2에 Docker 설치",
+        "환경변수 설정"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": ["AWS 계정 필요"]
+    },
+    {
+      "id": 51,
+      "category": "setup",
+      "description": "백엔드 배포 스크립트 작성",
+      "steps": [
+        "Dockerfile 작성 (multi-stage build)",
+        "Docker 이미지 빌드 및 ECR 푸시",
+        "EC2에서 docker pull 및 run 스크립트",
+        "GitHub Actions에 배포 job 추가",
+        "main 브랜치 push 시 자동 배포"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 52,
+      "category": "setup",
+      "description": "프론트엔드 Vercel 배포",
+      "steps": [
+        "Vercel 계정 연결 및 프로젝트 생성",
+        "환경변수 설정 (API URL 등)",
+        "main 브랜치 push 시 자동 배포",
+        "커스텀 도메인 연결 (선택)",
+        "배포 확인"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 53,
+      "category": "feature",
+      "description": "Spring Batch Soft Delete 정리 Job 구현",
+      "steps": [
+        "@EnableBatchProcessing 설정",
+        "ArchiveCleanupJob 정의",
+        "30일 이상 지난 soft deleted 아카이브 조회 Reader",
+        "물리적 삭제 Writer",
+        "@Scheduled cron으로 매일 새벽 실행"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 54,
+      "category": "feature",
+      "description": "Redis 캐싱 적용 (선택)",
+      "steps": [
+        "Spring Data Redis 의존성 추가",
+        "RedisTemplate Bean 설정",
+        "@Cacheable 어노테이션으로 아카이브 목록 캐싱",
+        "캐시 무효화 전략 구현",
+        "캐시 히트율 모니터링"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": ["Redis 인프라 필요 (ElastiCache 또는 EC2 내 Redis)"]
+    },
+    {
+      "id": 55,
+      "category": "test",
+      "description": "백엔드 단위 테스트 작성",
+      "steps": [
+        "Member 도메인 테스트 (회원가입 검증, 비밀번호 암호화)",
+        "Archive 도메인 테스트 (CRUD, Soft Delete)",
+        "TimeCapsule 도메인 테스트 (30분 잠금 규칙)",
+        "GIS 쿼리 테스트 (실제 좌표로 반경 검색)",
+        "JUnit 5 + Mockito 사용"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 56,
+      "category": "test",
+      "description": "백엔드 통합 테스트 작성",
+      "steps": [
+        "@SpringBootTest로 전체 컨텍스트 테스트",
+        "인증 플로우 테스트 (가입 → 로그인 → API 호출)",
+        "GIS 쿼리 통합 테스트",
+        "이벤트 발행/수신 테스트",
+        "TestContainers로 MySQL 컨테이너 사용"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    },
+    {
+      "id": 57,
+      "category": "docs",
+      "description": "Swagger API 문서화",
+      "steps": [
+        "springdoc-openapi 의존성 추가",
+        "@Operation, @ApiResponse 어노테이션 적용",
+        "Swagger UI 접근 확인 (/swagger-ui.html)",
+        "인증 헤더 설정 UI 추가"
+      ],
+      "passes": false,
+      "commit": null,
+      "blockers": []
+    }
+  ]
+}
